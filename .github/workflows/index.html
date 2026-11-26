@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>GNS Calculator PRO</title>
+  <style>
+    *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+    body{margin:0;background:#0f172a;color:#0f172a;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:12px}
+    .calc{background:#fff;width:100%;max-width:420px;border-radius:28px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+    .brand{font-size:20px;font-weight:800;letter-spacing:-0.02em}
+    .brand span{color:#ff0080}
+    .sub{font-size:12px;color:#64748b;font-weight:600}
+    .mode-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+    .sci-toggle{min-height:36px;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;background:#f1f5f9;color:#0f172a}
+    .sci-toggle.active{background:#ff0080;color:#fff}
+    .deg-btn{min-height:32px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;background:#e2e8f0;color:#0f172a;display:none}
+    .deg-btn.show{display:inline-block}
+    .screen{background:#f1f5f9;border-radius:18px;padding:16px;text-align:right;min-height:96px;margin-bottom:12px}
+    #history{font-size:13px;color:#64748b;min-height:20px;word-break:break-all;font-family:ui-monospace,monospace}
+    #display{font-size:36px;font-weight:800;word-break:break-all;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
+    .sci-grid{display:none;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+    .sci-grid.show{display:grid}
+    .sci-grid button{min-height:42px;font-size:13px;border-radius:12px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    button{min-height:52px;border:none;border-radius:14px;font-size:20px;font-weight:700;cursor:pointer;background:#f1f5f9;color:#0f172a;transition:transform .08s}
+    button:active{transform:scale(.95)}
+    .op{background:#0f172a;color:#fff}
+    .eq{background:#ff0080;color:#fff}
+    .clr{background:#fee2e2;color:#dc2626}
+    .row{display:flex;gap:10px;margin-top:10px}
+    .row button{flex:1;font-size:14px;min-height:46px;background:#e2e8f0}
+    .hist{background:#f8fafc;border:1px solid #e2e8f0;margin-top:14px;padding:12px;border-radius:16px;font-size:13px;max-height:130px;overflow:auto}
+    .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-weight:700}
+    .hist-clear{min-height:32px;padding:4px 10px;font-size:12px;border-radius:8px;background:#fee2e2;color:#dc2626}
+    .hist-item{padding:4px 0;border-bottom:1px solid #e2e8f0;font-family:ui-monospace,monospace;cursor:pointer}
+    .hist-item:last-child{border-bottom:none}
+  </style>
+</head>
+<body>
+  <div class="calc">
+    <div class="top">
+      <div>
+        <div class="brand">GNS <span>CALCULATOR</span></div>
+        <div class="sub">PRO · Offline Mode</div>
+      </div>
+    </div>
+    <div class="mode-bar">
+      <button id="sciToggle" class="sci-toggle" onclick="toggleSci()">Scientific</button>
+      <button id="degBtn" class="deg-btn" onclick="toggleAngle()">DEG</button>
+    </div>
+    <div class="screen">
+      <div id="history"></div>
+      <div id="display">0</div>
+    </div>
+    <div id="sciGrid" class="sci-grid">
+      <button onclick="addFn('sin(')">sin</button>
+      <button onclick="addFn('cos(')">cos</button>
+      <button onclick="addFn('tan(')">tan</button>
+      <button onclick="addFn('log(')">log</button>
+      <button onclick="addFn('ln(')">ln</button>
+      <button onclick="addFn('√(')">√</button>
+      <button onclick="add('^2')">x²</button>
+      <button class="op" onclick="add('^')">xʸ</button>
+      <button onclick="add('(')">(</button>
+      <button onclick="add(')')">)</button>
+      <button onclick="add('π')">π</button>
+      <button onclick="add('e')">e</button>
+      <button onclick="addFn('10^')">10ˣ</button>
+      <button onclick="add('^-1')">1/x</button>
+      <button onclick="add('^0.5')">x^½</button>
+    </div>
+    <div class="grid">
+      <button class="clr" onclick="clearAll()">C</button>
+      <button onclick="back()">⌫</button>
+      <button onclick="add('%')">%</button>
+      <button class="op" onclick="add('/')">÷</button>
+      <button onclick="add('7')">7</button><button onclick="add('8')">8</button><button onclick="add('9')">9</button><button class="op" onclick="add('*')">×</button>
+      <button onclick="add('4')">4</button><button onclick="add('5')">5</button><button onclick="add('6')">6</button><button class="op" onclick="add('-')">-</button>
+      <button onclick="add('1')">1</button><button onclick="add('2')">2</button><button onclick="add('3')">3</button><button class="op" onclick="add('+')">+</button>
+      <button onclick="add('00')">00</button><button onclick="add('0')">0</button><button onclick="add('.')">.</button><button class="eq" onclick="calc()">=</button>
+    </div>
+    <div class="row">
+      <button onclick="calcTax()">+ VAT 18%</button>
+      <button onclick="calcDisc()">- Discount 10%</button>
+    </div>
+    <div class="hist">
+      <div class="hist-head">
+        <span>Historia</span>
+        <button class="hist-clear" onclick="clearHist()">Futa Historia</button>
+      </div>
+      <div id="histList">Hakuna hesabu bado</div>
+    </div>
+  </div>
+  <script>
+    var STORAGE_KEY = 'gns_calc_offline_history_v1';
+    var disp = document.getElementById('display');
+    var hist = document.getElementById('history');
+    var histList = document.getElementById('histList');
+    var sciGrid = document.getElementById('sciGrid');
+    var sciToggle = document.getElementById('sciToggle');
+    var degBtn = document.getElementById('degBtn');
+    var cur = '0';
+    var isDeg = true;
+    var items = [];
+    try { items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { items = []; }
+
+    function toggleSci() {
+      var on = sciGrid.classList.toggle('show');
+      sciToggle.classList.toggle('active', on);
+      degBtn.classList.toggle('show', on);
+    }
+    function toggleAngle() {
+      isDeg = !isDeg;
+      degBtn.textContent = isDeg ? 'DEG' : 'RAD';
+    }
+    function balanceParens(expr) {
+      var open = 0;
+      for (var i = 0; i < expr.length; i++) {
+        if (expr[i] === '(') open++;
+        else if (expr[i] === ')') open = Math.max(0, open - 1);
+      }
+      while (open-- > 0) expr += ')';
+      return expr;
+    }
+
+    function safeEval(expr) {
+      var clean = String(expr).replace(/×/g,'*').replace(/÷/g,'/').replace(/√/g,'sqrt').replace(/\s+/g,'');
+      var raw = [];
+      var i = 0;
+      while (i < clean.length) {
+        var ch = clean[i];
+        if ((ch >= '0' && ch <= '9') || ch === '.') {
+          var s = ch; i++;
+          while (i < clean.length && ((clean[i] >= '0' && clean[i] <= '9') || clean[i] === '.')) { s += clean[i++]; }
+          var n = Number(s);
+          if (isNaN(n)) throw new Error('Bad number');
+          raw.push({t:'n',v:n});
+        } else if (ch === 'π') { raw.push({t:'n',v:Math.PI}); i++; }
+        else if (ch === 'e') { raw.push({t:'n',v:Math.E}); i++; }
+        else if (ch >= 'a' && ch <= 'z') {
+          var id = '';
+          while (i < clean.length && clean[i] >= 'a' && clean[i] <= 'z') id += clean[i++];
+          if (id === 'pi') raw.push({t:'n',v:Math.PI});
+          else if (['sin','cos','tan','log','ln','sqrt'].indexOf(id) >= 0) raw.push({t:'f',v:id});
+          else throw new Error('Bad fn');
+        } else if (ch === '(') { raw.push({t:'('}); i++; }
+        else if (ch === ')') { raw.push({t:')'}); i++; }
+        else if ('+-*/^'.indexOf(ch) >= 0) { raw.push({t:'op',v:ch}); i++; }
+        else if (ch === '%') { raw.push({t:'%'}); i++; }
+        else { throw new Error('Bad char'); }
+      }
+      var tokens = [];
+      for (var k = 0; k < raw.length; k++) {
+        var c = raw[k], p = tokens[tokens.length - 1];
+        if (p && (p.t === 'n' || p.t === ')' || p.t === '%') && (c.t === '(' || c.t === 'f' || c.t === 'n')) {
+          tokens.push({t:'op',v:'*'});
+        }
+        tokens.push(c);
+      }
+      var pos = 0;
+      function applyFn(name, arg) {
+        var rad = isDeg ? (arg * Math.PI) / 180 : arg;
+        if (name === 'sin') return Math.abs(Math.sin(rad)) < 1e-12 ? 0 : Math.sin(rad);
+        if (name === 'cos') return Math.abs(Math.cos(rad)) < 1e-12 ? 0 : Math.cos(rad);
+        if (name === 'tan') {
+          var t = Math.tan(rad);
+          if (!isFinite(t) || Math.abs(t) > 1e12) throw new Error('tan');
+          return Math.abs(t) < 1e-12 ? 0 : t;
+        }
+        if (name === 'log') { if (arg <= 0) throw new Error('log'); return Math.log10(arg); }
+        if (name === 'ln') { if (arg <= 0) throw new Error('ln'); return Math.log(arg); }
+        if (name === 'sqrt') { if (arg < 0) throw new Error('sqrt'); return Math.sqrt(arg); }
+        throw new Error('fn');
+      }
+      function primary() {
+        var tok = tokens[pos];
+        if (!tok) throw new Error('EOF');
+        var val, isPct = false;
+        if (tok.t === 'n') { pos++; val = tok.v; }
+        else if (tok.t === 'f') {
+          pos++;
+          var arg;
+          if (tokens[pos] && tokens[pos].t === '(') {
+            pos++; arg = exprFn().v;
+            if (!tokens[pos] || tokens[pos].t !== ')') throw new Error(')');
+            pos++;
+          } else { arg = unary().v; }
+          val = applyFn(tok.v, arg);
+        } else if (tok.t === '(') {
+          pos++; val = exprFn().v;
+          if (!tokens[pos] || tokens[pos].t !== ')') throw new Error(')');
+          pos++;
+        } else { throw new Error('Val'); }
+        while (tokens[pos] && tokens[pos].t === '%') { val /= 100; isPct = true; pos++; }
+        return {v:val, p:isPct};
+      }
+      function power() {
+        var b = primary();
+        if (tokens[pos] && tokens[pos].t === 'op' && tokens[pos].v === '^') {
+          pos++; var ex = unary();
+          var pw = Math.pow(b.v, ex.v);
+          if (!isFinite(pw)) throw new Error('Pow');
+          return {v:pw, p:false};
+        }
+        return b;
+      }
+      function unary() {
+        var tok = tokens[pos];
+        if (tok && tok.t === 'op' && (tok.v === '+' || tok.v === '-')) {
+          pos++; var opd = unary();
+          return {v: tok.v === '-' ? -opd.v : opd.v, p: opd.p};
+        }
+        return power();
+      }
+      function term() {
+        var left = unary(), isPct = left.p;
+        while (tokens[pos] && tokens[pos].t === 'op' && (tokens[pos].v === '*' || tokens[pos].v === '/')) {
+          var op = tokens[pos++].v, right = unary(); isPct = false;
+          if (op === '*') left.v *= right.v;
+          else { if (right.v === 0) throw new Error('Div0'); left.v /= right.v; }
+        }
+        return {v:left.v, p:isPct};
+      }
+      function exprFn() {
+        var acc = term().v;
+        while (tokens[pos] && tokens[pos].t === 'op' && (tokens[pos].v === '+' || tokens[pos].v === '-')) {
+          var op2 = tokens[pos++].v, r = term();
+          var d = r.p ? acc * r.v : r.v;
+          acc = op2 === '+' ? acc + d : acc - d;
+        }
+        return {v:acc};
+      }
+      var res = exprFn().v;
+      if (pos !== tokens.length) throw new Error('Trailing');
+      var rounded = Math.round(res * 1e10) / 1e10;
+      return Object.is(rounded, -0) ? 0 : rounded;
+    }
+
+    function renderHist() {
+      if (!items.length) { histList.textContent = 'Hakuna hesabu bado'; return; }
+      histList.innerHTML = '';
+      items.forEach(function(entry) {
+        var row = document.createElement('div');
+        row.className = 'hist-item';
+        row.textContent = entry;
+        row.onclick = function() {
+          var parts = entry.split('=');
+          if (parts[1]) { cur = parts[1].trim(); refresh(); }
+        };
+        histList.appendChild(row);
+      });
+    }
+    function refresh() { disp.textContent = cur.replace(/\*/g,'×').replace(/\//g,'÷'); }
+    function add(v) {
+      var ops = '+-*/^';
+      if (cur === '0' && v !== '.' && ops.indexOf(v) < 0 && v !== '%' && v !== ')') cur = v;
+      else cur += v;
+      refresh();
+    }
+    function addFn(fn) { cur = (cur === '0') ? fn : cur + fn; refresh(); }
+    function clearAll() { cur = '0'; hist.textContent = ''; refresh(); }
+    function back() {
+      var fns = ['sin(','cos(','tan(','log(','ln(','√('];
+      for (var i = 0; i < fns.length; i++) {
+        if (cur.endsWith(fns[i])) { cur = cur.slice(0, -fns[i].length) || '0'; refresh(); return; }
+      }
+      cur = cur.slice(0, -1) || '0'; refresh();
+    }
+    function addHist(t) {
+      items.unshift(t);
+      if (items.length > 50) items.pop();
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch(e) {}
+      renderHist();
+    }
+    function clearHist() {
+      items = [];
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      renderHist();
+    }
+    function calc() {
+      try {
+        var ex = balanceParens(cur);
+        var ans = safeEval(ex);
+        hist.textContent = ex + ' =';
+        cur = String(ans);
+        addHist(hist.textContent + ' ' + cur);
+        refresh();
+      } catch(e) {
+        cur = 'Error'; refresh();
+        setTimeout(function() { cur = '0'; refresh(); }, 900);
+      }
+    }
+    function calcTax() {
+      try {
+        var ex = balanceParens(cur);
+        var ans = Math.round(safeEval(ex) * 1.18 * 100) / 100;
+        hist.textContent = ex + ' + VAT 18% =';
+        cur = String(ans);
+        addHist(hist.textContent + ' ' + cur);
+        refresh();
+      } catch(e) {}
+    }
+    function calcDisc() {
+      try {
+        var ex = balanceParens(cur);
+        var ans = Math.round(safeEval(ex) * 0.9 * 100) / 100;
+        hist.textContent = ex + ' - Discount 10% =';
+        cur = String(ans);
+        addHist(hist.textContent + ' ' + cur);
+        refresh();
+      } catch(e) {}
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key >= '0' && e.key <= '9') add(e.key);
+      if ('+-*/%^().'.indexOf(e.key) >= 0) add(e.key);
+      if (e.key === 'Enter') calc();
+      if (e.key === 'Backspace') back();
+      if (e.key === 'Escape') clearAll();
+    });
+    renderHist();
+  </script>
+</body>
+</html>
